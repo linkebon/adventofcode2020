@@ -7,6 +7,7 @@ defmodule DayOne do
       for x <- list, y <- list, x + y == 2020, do: throw(x * y)
     catch
       solution -> IO.puts("Solution: #{solution}")
+                  solution
     end
   end
 
@@ -17,6 +18,7 @@ defmodule DayOne do
       for x <- list, y <- list, z <- list, x + y + z == 2020, do: throw(x * y * z)
     catch
       solution -> IO.puts("Solution: #{solution}")
+                  solution
     end
   end
 end
