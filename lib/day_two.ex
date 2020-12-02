@@ -7,6 +7,23 @@ defmodule DayTwo do
     |> Enum.count()
   end
 
+  def b() do
+    Read_File_Utils.read_file("two.txt")
+    |> Enum.map(&(String.split(&1, " ")))
+    |> Enum.filter(&(password_following_policy_extended?(&1)))
+    |> Enum.count()
+  end
+
+  def password_following_policy_extended?(password_info) do
+    chars_as_list = password(password_info)
+                    |> String.graphemes()
+    letter_searched = letter_policy(password_info)
+    case Enum.at(chars_as_list, index_pos1(password_info)) do
+      l when l == letter_searched -> Enum.at(chars_as_list, index_pos2(password_info)) != letter_searched
+      _ -> Enum.at(chars_as_list, index_pos2(password_info)) == letter_searched
+    end
+  end
+
   def password_following_policy?(password_info) do
     policy_letter_count = password(password_info)
                           |> String.graphemes()
@@ -14,6 +31,10 @@ defmodule DayTwo do
 
     policy_letter_count >= min_occurrence(password_info) && policy_letter_count <= max_occurrence(password_info)
   end
+
+  def index_pos1(password_info), do: min_occurrence(password_info) - 1
+
+  def index_pos2(password_info), do: max_occurrence(password_info) - 1
 
   def min_occurrence(password_info), do:
     Enum.at(password_info, 0)
