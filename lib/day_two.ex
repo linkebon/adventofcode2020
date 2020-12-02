@@ -18,9 +18,10 @@ defmodule DayTwo do
     chars_as_list = password(password_info)
                     |> String.graphemes()
     letter_searched = letter_policy(password_info)
-    case Enum.at(chars_as_list, index_pos1(password_info)) do
-      l when l == letter_searched -> Enum.at(chars_as_list, index_pos2(password_info)) != letter_searched
-      _ -> Enum.at(chars_as_list, index_pos2(password_info)) == letter_searched
+    cond do
+      Enum.at(chars_as_list, index_pos1(password_info)) == letter_searched && Enum.at(chars_as_list, index_pos2(password_info)) != letter_searched -> true
+      Enum.at(chars_as_list, index_pos2(password_info)) == letter_searched && Enum.at(chars_as_list, index_pos1(password_info)) != letter_searched -> true
+      true -> false
     end
   end
 
@@ -53,5 +54,4 @@ defmodule DayTwo do
     |> String.at(0)
 
   def password(password_info), do: Enum.at(password_info, 2)
-
 end
