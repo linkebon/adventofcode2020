@@ -3,9 +3,7 @@ defmodule DayTwo do
   def a() do
     Read_File_Utils.read_file("two.txt")
     |> Enum.map(&(String.split(&1, " ")))
-    |> IO.inspect()
     |> Enum.filter(&(password_following_policy?(&1)))
-    |> IO.inspect()
     |> Enum.count()
   end
 
