@@ -17,4 +17,12 @@ defmodule Advent2020Test do
   test "Day 2 B" do
     assert DayTwo.b() == 360
   end
+
+  test "Day 3 A" do
+    assert D3.a() == 270
+  end
+
+  test "Day 3 B" do
+    assert D3.b() == 2122848000
+  end
 end
