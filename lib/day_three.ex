@@ -10,7 +10,6 @@ defmodule D3 do
            |> step_right()
            |> step_down())
        )
-    |> IO.inspect(label: "Slope two")
   end
 
   def b() do
