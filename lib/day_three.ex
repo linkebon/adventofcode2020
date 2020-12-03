@@ -5,10 +5,10 @@ defmodule D3 do
     |> expand_grid()
     |> traverse(
          {0, 0},
-         &(next_coordinate(&1)
-           |> next_coordinate()
-           |> next_coordinate()
-           |> next_coordinate(true))
+         &(step_right(&1)
+           |> step_right()
+           |> step_right()
+           |> step_down())
        )
     |> IO.inspect(label: "Slope two")
   end
@@ -20,8 +20,8 @@ defmodule D3 do
     slope1 = grid
              |> traverse(
                   {0, 0},
-                  &(next_coordinate(&1)
-                    |> next_coordinate(true)
+                  &(step_right(&1)
+                    |> step_down()
                     )
                 )
 
@@ -29,45 +29,45 @@ defmodule D3 do
     slope2 = grid
              |> traverse(
                   {0, 0},
-                  &(next_coordinate(&1)
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate(true))
+                  &(step_right(&1)
+                    |> step_right()
+                    |> step_right()
+                    |> step_down())
                 )
 
     #Right 5, down 1.
     slope3 = grid
              |> traverse(
                   {0, 0},
-                  &(next_coordinate(&1)
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate(true))
+                  &(step_right(&1)
+                    |> step_right()
+                    |> step_right()
+                    |> step_right()
+                    |> step_right()
+                    |> step_down())
                 )
 
     #Right 7, down 1.
     slope4 = grid
              |> traverse(
                   {0, 0},
-                  &(next_coordinate(&1)
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate()
-                    |> next_coordinate(true))
+                  &(step_right(&1)
+                    |> step_right()
+                    |> step_right()
+                    |> step_right()
+                    |> step_right()
+                    |> step_right()
+                    |> step_right()
+                    |> step_down())
                 )
 
     #Right 1, down 2.
     slope5 = grid
              |> traverse(
                   {0, 0},
-                  &(next_coordinate(&1)
-                    |> next_coordinate(true)
-                    |> next_coordinate(true))
+                  &(step_right(&1)
+                    |> step_down()
+                    |> step_down())
                 )
     slope1 * slope2 * slope3 * slope4 * slope5
   end
@@ -91,12 +91,9 @@ defmodule D3 do
     end
   end
 
-  def next_coordinate(c, col \\ false) do
-    case col do
-      false -> put_elem(c, 0, elem(c, 0) + 1)
-      true -> put_elem(c, 1, elem(c, 1) + 1)
-    end
-  end
+  def step_right(c), do: put_elem(c, 0, elem(c, 0) + 1)
+
+  def step_down(c), do: put_elem(c, 1, elem(c, 1) + 1)
 
   def coordinate_contain_tree(grid, c), do: coordinate_value(grid, c) === "#"
 
