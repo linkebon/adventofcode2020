@@ -10,6 +10,14 @@ defmodule D4 do
     |> Enum.count()
   end
 
+  def b() do
+    Read_File_Utils.read_file("four.txt", ~r{\n\n})
+    |> Enum.map(&(String.replace(&1, "\n", " ")))
+    |> Enum.map(&structure_passport_input/1)
+    |> Enum.filter(&valid_passport?/1)
+    |> Enum.count()
+  end
+
   def structure_passport_input(passport, passport_format \\ ~r/([A-z]{3}):([A-z0-9#]+)/) do
     passport
     |> String.split(~r{ })
@@ -21,6 +29,70 @@ defmodule D4 do
        )
   end
 
-  def valid_passport?(passport), do: Enum.all?(@mandatory, &(&1 in List.flatten(passport)))
+  def valid_passport?(passport) do
+    Enum.all?(
+      @mandatory,
+      fn man_attr ->
+        case passport do
+          attrs when man_attr in List.flatten(passport) ->
+            found_attr = Enum.find(attrs, &(&1[0] == man_attr))
+                         |> IO.inspect(label: "")
+            case found_attr do
+              ["byr", val] -> birth_year?(val)
+              ["iyr", val] -> issue_year?(val)
+              ["eyr", val] -> expiration_year?(val)
+              ["hgt", val] -> height?(val)
+              ["hcl", val] -> hair_color?(val)
+              ["ecl", val] -> eye_color?(val)
+              ["pid", val] -> passport_id?(val)
+            end
+          _ -> false
+        end
+      end
+    )
+  end
+
+  def birth_year?(year)do
+    parsed = String.to_integer(year)
+    (parsed >= 1920 and parsed <= 2002)
+    |> IO.inspect(label: "birth_year?")
+  end
+
+  def issue_year?(year) do
+    parsed = String.to_integer(year)
+    (parsed >= 2010 and parsed <= 2020)
+    |> IO.inspect(label: "issue_year?")
+  end
+
+  def expiration_year?(year) do
+    parsed = String.to_integer(year)
+    (parsed >= 2020 and parsed <= 2030)
+    |> IO.inspect(label: "expiration_year?")
+  end
+
+  def height?(height) do
+    if(String.contains?(height, "cm")) do
+      parsed_height = String.to_integer(String.replace(height, "cm", ""))
+      parsed_height >= 150 and parsed_height <= 193
+    else
+      parsed_height = String.to_integer(String.replace(height, "in", ""))
+      parsed_height >= 59 and parsed_height <= 76
+    end
+    |> IO.inspect(label: "height?")
+  end
+
+  def hair_color?(color) do
+    String.match?(color, ~r/a[0-9a-f]{6}/)
+    |> IO.inspect(label: "hair_color?")
+  end
+
+  def eye_color?(color),
+      do: color in ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+          |> IO.inspect(label: "eye_color?")
+
+  def passport_id?(id) do
+    String.match?(id, ~r/[\d]{9}/)
+    |> IO.inspect(label: "passport_id?")
+  end
 
 end
