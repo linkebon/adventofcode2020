@@ -6,7 +6,7 @@ defmodule D4 do
     Read_File_Utils.read_file("four.txt", ~r{\n\n})
     |> Enum.map(&(String.replace(&1, "\n", " ")))
     |> Enum.map(&structure_passport_input/1)
-    |> Enum.filter(&valid_passport?/1)
+    |> Enum.filter(&a_valid_passport?/1)
     |> Enum.count()
   end
 
@@ -35,7 +35,7 @@ defmodule D4 do
       fn man_attr ->
         man_attrs_exist = man_attr in List.flatten(passport)
         if(man_attrs_exist) do
-          found_attr = Enum.find(passport, &(Enum.at(&1, 0) == man_attr)) |> IO.inspect(label: "found attr")
+          found_attr = Enum.find(passport, &(Enum.at(&1, 0) == man_attr))
           attr_valid = case found_attr do
             ["byr", val] -> birth_year?(val)
             ["iyr", val] -> issue_year?(val)
@@ -52,22 +52,19 @@ defmodule D4 do
     )
   end
 
-  def birth_year?(year)do
+  def birth_year?(year) do
     parsed = String.to_integer(year)
     (parsed >= 1920 and parsed <= 2002)
-    |> IO.inspect(label: "birth_year?")
   end
 
   def issue_year?(year) do
     parsed = String.to_integer(year)
     (parsed >= 2010 and parsed <= 2020)
-    |> IO.inspect(label: "issue_year?")
   end
 
   def expiration_year?(year) do
     parsed = String.to_integer(year)
     (parsed >= 2020 and parsed <= 2030)
-    |> IO.inspect(label: "expiration_year?")
   end
 
   def height?(height) do
@@ -78,21 +75,26 @@ defmodule D4 do
       parsed_height = String.to_integer(String.replace(height, "in", ""))
       parsed_height >= 59 and parsed_height <= 76
     end
-    |> IO.inspect(label: "height?")
   end
 
   def hair_color?(color) do
-    String.match?(color, ~r/#[0-9a-f]{6}/)
-    |> IO.inspect(label: "hair_color?")
+    String.match?(color, ~r/^#[0-9a-f]{6}$/)
   end
 
   def eye_color?(color),
       do: color in ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
-          |> IO.inspect(label: "eye_color?")
 
   def passport_id?(id) do
-    String.match?(id, ~r/[\d]{9}/)
-    |> IO.inspect(label: "passport_id?")
+    String.match?(id, ~r/^[\d]{9}$/)
+  end
+
+  def a_valid_passport?(passport) do
+    Enum.all?(
+      @mandatory,
+      fn man_attr ->
+        man_attrs_exist = man_attr in List.flatten(passport)
+      end
+    )
   end
 
 end
