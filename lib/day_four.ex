@@ -33,20 +33,20 @@ defmodule D4 do
     Enum.all?(
       @mandatory,
       fn man_attr ->
-        case passport do
-          attrs when man_attr in List.flatten(passport) ->
-            found_attr = Enum.find(attrs, &(&1[0] == man_attr))
-                         |> IO.inspect(label: "")
-            case found_attr do
-              ["byr", val] -> birth_year?(val)
-              ["iyr", val] -> issue_year?(val)
-              ["eyr", val] -> expiration_year?(val)
-              ["hgt", val] -> height?(val)
-              ["hcl", val] -> hair_color?(val)
-              ["ecl", val] -> eye_color?(val)
-              ["pid", val] -> passport_id?(val)
-            end
-          _ -> false
+        man_attrs_exist = man_attr in List.flatten(passport)
+        if(man_attrs_exist) do
+          found_attr = Enum.find(passport, &(Enum.at(&1, 0) == man_attr)) |> IO.inspect(label: "found attr")
+          attr_valid = case found_attr do
+            ["byr", val] -> birth_year?(val)
+            ["iyr", val] -> issue_year?(val)
+            ["eyr", val] -> expiration_year?(val)
+            ["hgt", val] -> height?(val)
+            ["hcl", val] -> hair_color?(val)
+            ["ecl", val] -> eye_color?(val)
+            ["pid", val] -> passport_id?(val)
+          end
+        else
+          false
         end
       end
     )
@@ -82,7 +82,7 @@ defmodule D4 do
   end
 
   def hair_color?(color) do
-    String.match?(color, ~r/a[0-9a-f]{6}/)
+    String.match?(color, ~r/#[0-9a-f]{6}/)
     |> IO.inspect(label: "hair_color?")
   end
 
