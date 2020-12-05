@@ -27,7 +27,7 @@ defmodule D5 do
                       |> Enum.map(&(elem(&1, 0) * 8 + elem(&1, 1)))
     case for id <- Enum.min(seat_ids)..Enum.max(seat_ids), !(id in seat_ids), do: id do
       [hd | []] -> hd
-      [] -> throw("no seat id found")
+      _ -> throw("no seat id found")
     end
   end
 
