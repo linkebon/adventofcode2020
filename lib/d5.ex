@@ -13,7 +13,6 @@ defmodule D5 do
 
     Enum.zip(rows, cols)
     |> Enum.map(&(elem(&1, 0) * 8 + elem(&1, 1)))
-    |> IO.inspect()
     |> Enum.max()
   end
 
