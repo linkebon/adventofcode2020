@@ -72,13 +72,12 @@ defmodule D3 do
   end
 
   def traverse(grid, current_position, traverse_instructions, tree_count \\ 0) do
-    case coordinate_value(grid, current_position) do
-      "x" ->
-        tree_count
-      _ ->
-        current_position = traverse_instructions.(current_position)
-        tree_count = increase_tree_count_when_tree(grid, current_position, tree_count)
-        traverse(grid, current_position, traverse_instructions, tree_count)
+    if(last_row?(grid, current_position)) do
+      tree_count
+    else
+      current_position = traverse_instructions.(current_position)
+      tree_count = increase_tree_count_when_tree(grid, current_position, tree_count)
+      traverse(grid, current_position, traverse_instructions, tree_count)
     end
   end
 
@@ -89,6 +88,8 @@ defmodule D3 do
       tree_count
     end
   end
+
+  def last_row?(grid, c), do: elem(c, 1) + 1 == Enum.count(grid)
 
   def step_right(c), do: put_elem(c, 0, elem(c, 0) + 1)
 
@@ -105,10 +106,7 @@ defmodule D3 do
 
   def expand_grid(grid),
       do: Enum.map(
-            grid,
-            &(String.duplicate(&1, 75))
-          ) ++ [
-            String.duplicate("x", 2500),
-            String.duplicate("x", 2500)
-          ]
+        grid,
+        &(String.duplicate(&1, 75))
+      )
 end
