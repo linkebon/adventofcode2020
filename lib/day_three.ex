@@ -2,7 +2,6 @@ defmodule D3 do
 
   def a() do
     Read_File_Utils.read_file("three.txt")
-    |> expand_grid()
     |> traverse(
          {0, 0},
          &(step_right(&1)
@@ -14,7 +13,6 @@ defmodule D3 do
 
   def b() do
     grid = Read_File_Utils.read_file("three.txt")
-           |> expand_grid()
     #Right 1, down 1.
     slope1 = grid
              |> traverse(
@@ -97,16 +95,10 @@ defmodule D3 do
 
   def coordinate_contain_tree(grid, c), do: coordinate_value(grid, c) === "#"
 
-  def coordinate_value(grid, c),
-      do:
-        String.at(
-          Enum.at(grid, elem(c, 1)),
-          elem(c, 0)
-        )
+  def coordinate_value(grid, c) do
+    row = Enum.at(grid, elem(c, 1))
+    # divide the x positon with the total length om the string and take the remaining part instead of copying the row lots of times.
+    String.at(row, rem(elem(c, 0), String.length(row)))
+  end
 
-  def expand_grid(grid),
-      do: Enum.map(
-        grid,
-        &(String.duplicate(&1, 75))
-      )
 end
