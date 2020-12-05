@@ -16,6 +16,21 @@ defmodule D5 do
     |> Enum.max()
   end
 
+  def b() do
+    rows = Read_File_Utils.read_file("five.txt")
+           |> Enum.map(fn boarding_pass -> reduce_boarding_pass(boarding_pass, 0..6, 0..127) end)
+
+    cols = Read_File_Utils.read_file("five.txt")
+           |> Enum.map(fn boarding_pass -> reduce_boarding_pass(boarding_pass, 7..9, 0..7) end)
+
+    seat_ids = Enum.zip(rows, cols)
+                      |> Enum.map(&(elem(&1, 0) * 8 + elem(&1, 1)))
+    case for id <- Enum.min(seat_ids)..Enum.max(seat_ids), !(id in seat_ids), do: id do
+      [hd | []] -> hd
+      [] -> throw("no seat id found")
+    end
+  end
+
   def reduce_boarding_pass(bp, letters_range, seat_range) do
     _..val = bp
              |> String.slice(letters_range)
@@ -23,14 +38,11 @@ defmodule D5 do
              |> Enum.reduce(
                   seat_range,
                   fn letter, first..last ->
-                    IO.puts("Letter: #{letter}")
                     case letter do
                       l when l == "F" or l == "L" ->
                         lower_half(first..last)
-                        |> IO.inspect(label: "Lower")
                       l when l == "R" or l == "B" ->
                         upper_half(first..last)
-                        |> IO.inspect(label: "Upper")
                     end
                   end
                 )
