@@ -6,6 +6,17 @@ defmodule D6 do
     |> Enum.sum()
   end
 
+  def a1() do
+    Read_File_Utils.read_file("six.txt", ~r/\n\n/)
+    |> Enum.map(
+         &(String.graphemes(&1))
+          |> Enum.reject(fn letter -> letter == "\n" end)
+          |> MapSet.new()
+          |> Enum.count()
+       )
+    |> Enum.sum()
+  end
+
   def b() do
     all_group_answers = Read_File_Utils.read_file("six.txt", ~r/\n\n/)
                         |> Enum.map(&(String.split(&1, "\n")))
