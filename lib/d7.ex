@@ -4,24 +4,41 @@ defmodule D7 do
     bag_rules = Read_File_Utils.read_file("seven.txt")
                 |> create_bag_rule_structure()
                 |> Map.delete(:shiny_gold)
-    for {_, bag_type_rules} <- bag_rules do
+    for {curr, bag_type_rules} <- bag_rules do
       if(Enum.empty?(bag_type_rules)) do
         #IO.puts("empty")
         0
       else
         for bag_rule <- bag_type_rules do
-          find_packing_options_for_bag_type(
-            bag_rules,
-            :shiny_gold,
-            "#{Atom.to_string(elem(bag_rule, 1))}",
-            elem(bag_rule, 1)
-          )
+          if(elem(bag_rule, 1) == :shiny_gold) do
+            IO.puts("here")
+            1
+          else
+            find_packing_options_for_bag_type(
+              bag_rules,
+              :shiny_gold,
+              "#{Atom.to_string(curr)}:#{Atom.to_string(elem(bag_rule, 1))}",
+              elem(bag_rule, 1)
+            )
+          end
+
         end
       end
     end
     |> List.flatten()
     |> Enum.sum()
   end
+
+  #%{
+  #  bright_white: [{1, :shiny_gold}],
+  #  dark_olive: [{3, :faded_blue}, {4, :dotted_black}],
+  #  dark_orange: [{3, :bright_white}, {4, :muted_yellow}],
+  #  dotted_black: [],
+  #  faded_blue: [],
+  #  light_red: [{1, :bright_white}, {2, :muted_yellow}],
+  #  muted_yellow: [{2, :shiny_gold}, {9, :faded_blue}],
+  #  vibrant_plum: [{5, :faded_blue}, {6, :dotted_black}]
+  #}
 
   def find_packing_options_for_bag_type(bag_rules_map, bag_type_searched, path, current_bag_type) do
     bag_rules = Map.get(bag_rules_map, current_bag_type)
@@ -35,7 +52,7 @@ defmodule D7 do
       else
         for rule <- bag_rules do
           if(bag_type_searched == elem(rule, 1)) do
-            #IO.puts("1 - #{path}")
+            IO.puts("1 - #{path}")
             1
           else
             find_packing_options_for_bag_type(
