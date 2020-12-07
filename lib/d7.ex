@@ -5,6 +5,54 @@ defmodule D7 do
     Read_File_Utils.read_file("seven.txt")
     |> create_bag_rule_structure()
     |> IO.inspect(label: "bag structure")
+    |> Map.delete(:shiny_gold)
+    |> find_packing_options_for_bag_type(:shiny_gold)
+    |> IO.inspect()
+  end
+
+  def find_packing_options_for_bag_type(bag_rules, bag_type_searched, current_bag_type \\ :first) do
+
+    #1. sök bland keys efter bag typ
+    #2. om finns, för varje rule sök gör sök 1 men ta bort den du precis sökte efter
+    case current_bag_type do
+      :first ->
+        for {_, bag_type_rules} <- bag_rules do
+          if(Enum.count(bag_type_rules) == 0) do
+            0
+          else
+            for bag_rule <- bag_type_rules do
+              if(bag_type_searched == elem(bag_rule, 1)) do
+                IO.inspect(bag_rule, label: "returning 1 for")
+                1
+              else
+                find_packing_options_for_bag_type(bag_rules, bag_type_searched, elem(bag_rule, 1))
+              end
+            end
+          end
+        end
+      _ ->
+        if(Map.get(bag_rules, current_bag_type) == nil) do
+          IO.puts("no key found for #{Atom.to_string(current_bag_type)}")
+          0
+        else
+          for bag_rule <- Map.get(bag_rules, current_bag_type) do
+            if(bag_type_searched == elem(bag_rule, 1)) do
+              IO.inspect(bag_rule, label: "returning 1 for")
+              1
+            else
+              find_packing_options_for_bag_type(
+                Map.delete(bag_rules, bag_rule),
+                bag_type_searched,
+                elem(bag_rule, 1)
+              )
+            end
+          end
+        end
+    end
+  end
+
+  def remove_searched_bag_type_from_rules(bag_rules, bag_type_searched) do
+    Map.take(bag_rules, Enum.filter(Map.keys(bag_rules), &(&1 != bag_type_searched)))
   end
 
   def create_bag_rule_structure(bag_rules) do
@@ -21,14 +69,11 @@ defmodule D7 do
   end
 
   def parse_bag_contains(rules) do
-    #light red bags contain 1 bright white bag, 2 muted yellow bags.
-    #[_ | contain_rules] = Enum.at(String.split(rules, "contain "))
-
-    #String.split(Enum.at(String.split(rules, "contain"), 1), ",")
     rules
     |> String.split("contain")
     |> Enum.at(1)
     |> String.split(",")
+    |> Enum.filter(&bag_rule_contains_bag?/1)
     |> Enum.map(
          fn rule ->
            rule = String.trim_leading(rule)
@@ -37,12 +82,9 @@ defmodule D7 do
            {bag_count, bag_type}
          end
        )
-    |> IO.inspect(label: "contains")
   end
+
+  def bag_rule_contains_bag?(bag_rule), do: !String.starts_with?(String.trim_leading(bag_rule), "no")
 
   def as_atom(type, color), do: :"#{type}_#{color}"
-
-  def parse_bag_rule(rule) do
-
-  end
 end
