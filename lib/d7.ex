@@ -1,55 +1,56 @@
 defmodule D7 do
 
   def a() do
-    #light red bags contain 1 bright white bag, 2 muted yellow bags.
-    Read_File_Utils.read_file("seven.txt")
-    |> create_bag_rule_structure()
-    |> IO.inspect(label: "bag structure")
-    |> Map.delete(:shiny_gold)
-    |> find_packing_options_for_bag_type(:shiny_gold)
-    |> IO.inspect()
+    bag_rules = Read_File_Utils.read_file("seven.txt")
+                |> create_bag_rule_structure()
+                |> Map.delete(:shiny_gold)
+    for {_, bag_type_rules} <- bag_rules do
+      if(Enum.empty?(bag_type_rules)) do
+        #IO.puts("empty")
+        0
+      else
+        for bag_rule <- bag_type_rules do
+          find_packing_options_for_bag_type(
+            bag_rules,
+            :shiny_gold,
+            "#{Atom.to_string(elem(bag_rule, 1))}",
+            elem(bag_rule, 1)
+          )
+        end
+      end
+    end
+    |> List.flatten()
+    |> Enum.sum()
   end
 
-  def find_packing_options_for_bag_type(bag_rules, bag_type_searched, current_bag_type \\ :first) do
-
-    #1. sök bland keys efter bag typ
-    #2. om finns, för varje rule sök gör sök 1 men ta bort den du precis sökte efter
-    case current_bag_type do
-      :first ->
-        for {_, bag_type_rules} <- bag_rules do
-          if(Enum.count(bag_type_rules) == 0) do
-            0
+  def find_packing_options_for_bag_type(bag_rules_map, bag_type_searched, path, current_bag_type) do
+    bag_rules = Map.get(bag_rules_map, current_bag_type)
+    if(bag_rules == nil) do
+      #IO.puts("no key found for #{Atom.to_string(current_bag_type)} returning 0")
+      0
+    else
+      if(Enum.empty?(bag_rules)) do
+        #IO.puts("0 - #{path}")
+        0
+      else
+        for rule <- bag_rules do
+          if(bag_type_searched == elem(rule, 1)) do
+            #IO.puts("1 - #{path}")
+            1
           else
-            for bag_rule <- bag_type_rules do
-              if(bag_type_searched == elem(bag_rule, 1)) do
-                IO.inspect(bag_rule, label: "returning 1 for")
-                1
-              else
-                find_packing_options_for_bag_type(bag_rules, bag_type_searched, elem(bag_rule, 1))
-              end
-            end
+            find_packing_options_for_bag_type(
+              remove_current_rule(bag_rules_map, current_bag_type),
+              bag_type_searched,
+              "#{path}:#{Atom.to_string(elem(rule, 1))}",
+              elem(rule, 1)
+            )
           end
         end
-      _ ->
-        if(Map.get(bag_rules, current_bag_type) == nil) do
-          IO.puts("no key found for #{Atom.to_string(current_bag_type)}")
-          0
-        else
-          for bag_rule <- Map.get(bag_rules, current_bag_type) do
-            if(bag_type_searched == elem(bag_rule, 1)) do
-              IO.inspect(bag_rule, label: "returning 1 for")
-              1
-            else
-              find_packing_options_for_bag_type(
-                Map.delete(bag_rules, bag_rule),
-                bag_type_searched,
-                elem(bag_rule, 1)
-              )
-            end
-          end
-        end
+      end
     end
   end
+
+  def remove_current_rule(bag_rules, current), do: Map.delete(bag_rules, current)
 
   def remove_searched_bag_type_from_rules(bag_rules, bag_type_searched) do
     Map.take(bag_rules, Enum.filter(Map.keys(bag_rules), &(&1 != bag_type_searched)))
