@@ -9,23 +9,28 @@ defmodule D7 do
         #IO.puts("empty")
         0
       else
-        for bag_rule <- bag_type_rules do
-          if(elem(bag_rule, 1) == :shiny_gold) do
-            IO.puts("here")
-            1
-          else
-            find_packing_options_for_bag_type(
-              bag_rules,
-              :shiny_gold,
-              "#{Atom.to_string(curr)}:#{Atom.to_string(elem(bag_rule, 1))}",
-              elem(bag_rule, 1)
-            )
-          end
-
+        contains = for bag_rule <- bag_type_rules do
+                     if(elem(bag_rule, 1) == :shiny_gold) do
+                       IO.puts("directly: #{Atom.to_string(curr)}")
+                       1
+                     else
+                       find_packing_options_for_bag_type(
+                         bag_rules,
+                         :shiny_gold,
+                         "#{Atom.to_string(curr)}:#{Atom.to_string(elem(bag_rule, 1))}",
+                         elem(bag_rule, 1)
+                       )
+                     end
+                   end
+                   |> List.flatten()
+                   |> Enum.any?(&(&1))
+        if(contains) do
+          1
+        else
+          0
         end
       end
     end
-    |> List.flatten()
     |> Enum.sum()
   end
 
@@ -44,16 +49,16 @@ defmodule D7 do
     bag_rules = Map.get(bag_rules_map, current_bag_type)
     if(bag_rules == nil) do
       #IO.puts("no key found for #{Atom.to_string(current_bag_type)} returning 0")
-      0
+      false
     else
       if(Enum.empty?(bag_rules)) do
         #IO.puts("0 - #{path}")
-        0
+        false
       else
         for rule <- bag_rules do
           if(bag_type_searched == elem(rule, 1)) do
             IO.puts("1 - #{path}")
-            1
+            true
           else
             find_packing_options_for_bag_type(
               remove_current_rule(bag_rules_map, current_bag_type),
