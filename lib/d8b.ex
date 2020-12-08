@@ -4,40 +4,25 @@ defmodule D8B do
     Read_File_Utils.read_file("eight.txt")
     |> Enum.map(&(parse_op_info(&1)))
     |> fix_boot_instructions()
-    |> run_instruction()
+    |> run_boot_instructions()
   end
 
   def fix_boot_instructions(boot_info, op_idx \\ 0) do
     case Enum.at(boot_info, op_idx) do
       {"nop", "+", number} ->
         int_number = String.to_integer(number)
-        if(int_number != 0) do
-          IO.puts("replacing #{op_idx} with jmp + #{number}")
-          boot_fixed = boot_fixed?(List.replace_at(boot_info, op_idx, {"jmp", "+", number}))
-          if(boot_fixed) do
-            IO.puts("replacing idx: #{op_idx}}")
-            List.replace_at(boot_info, op_idx, {"jmp", "+", number})
-            |> IO.inspect(label: "replacing")
-          else
-            fix_boot_instructions(boot_info, op_idx + 1)
-          end
+        IO.puts("replacing #{op_idx} with jmp + #{number}")
+        if(int_number != 0 and boot_fixed?(List.replace_at(boot_info, op_idx, {"jmp", "+", number}))) do
+          List.replace_at(boot_info, op_idx, {"jmp", "+", number})
         else
           fix_boot_instructions(boot_info, op_idx + 1)
         end
 
       {"nop", "-", number} ->
         int_number = String.to_integer(number)
-
-        if(int_number != 0) do
-          IO.puts("replacing #{op_idx} with jmp - #{number}")
-          boot_fixed = boot_fixed?(List.replace_at(boot_info, op_idx, {"jmp", "-", number}))
-          if(boot_fixed) do
-            IO.puts("replacing idx: #{op_idx}}")
-            List.replace_at(boot_info, op_idx, {"jmp", "+", number})
-            |> IO.inspect(label: "replacing")
-          else
-            fix_boot_instructions(boot_info, op_idx + 1)
-          end
+        IO.puts("replacing #{op_idx} with jmp - #{number}")
+        if(int_number != 0 and boot_fixed?(List.replace_at(boot_info, op_idx, {"jmp", "-", number}))) do
+          List.replace_at(boot_info, op_idx, {"jmp", "+", number})
         else
           fix_boot_instructions(boot_info, op_idx + 1)
         end
@@ -50,7 +35,6 @@ defmodule D8B do
         IO.puts("replacing #{op_idx} with nop + #{number}")
         if(boot_fixed?(List.replace_at(boot_info, op_idx, {"nop", "+", number}))) do
           List.replace_at(boot_info, op_idx, {"nop", "+", number})
-          |> IO.inspect(label: "replacing")
         else
           fix_boot_instructions(boot_info, op_idx + number)
         end
@@ -60,7 +44,6 @@ defmodule D8B do
         IO.puts("replacing #{op_idx} with nop - #{number}")
         if(boot_fixed?(List.replace_at(boot_info, op_idx, {"nop", "-", number}))) do
           List.replace_at(boot_info, op_idx, {"nop", "-", number})
-          |> IO.inspect(label: "replacing")
         else
           fix_boot_instructions(boot_info, op_idx - number)
         end
@@ -93,47 +76,47 @@ defmodule D8B do
     end
   end
 
-  def run_instruction(boot_info, op_idx \\ 0, visited_idx_list \\ [], acc \\ 0, complete \\ false) do
+  def run_boot_instructions(boot_info, op_idx \\ 0, visited_idx_list \\ [], acc \\ 0, complete \\ false) do
     if(complete) do
       IO.puts("completed op_idx + #{op_idx}")
       acc
     else
       IO.puts("op_idx: #{op_idx}")
       case Enum.at(boot_info, op_idx)
-           |> IO.inspect(label: "run_instruction") do
+           |> IO.inspect(label: "run_boot_instructions") do
         {"nop", _, _} ->
-          run_instruction(boot_info, op_idx + 1, visited_idx_list ++ [op_idx], acc, Enum.count(boot_info) - 1 == op_idx)
+          run_boot_instructions(boot_info, op_idx + 1, visited_idx_list ++ [op_idx], acc, last_op?(boot_info, op_idx))
         {"acc", "+", number} ->
-          run_instruction(
+          run_boot_instructions(
             boot_info,
             op_idx + 1,
             visited_idx_list ++ [op_idx],
             acc + String.to_integer(number),
-            Enum.count(boot_info) - 1 == op_idx
+            last_op?(boot_info, op_idx)
           )
         {"acc", "-", number} ->
-          run_instruction(
+          run_boot_instructions(
             boot_info,
             op_idx + 1,
             visited_idx_list ++ [op_idx],
             acc - String.to_integer(number),
-            Enum.count(boot_info) - 1 == op_idx
+            last_op?(boot_info, op_idx)
           )
         {"jmp", "+", number} ->
-          run_instruction(
+          run_boot_instructions(
             boot_info,
             (op_idx + String.to_integer(number)),
             visited_idx_list ++ [op_idx],
             acc,
-            Enum.count(boot_info) - 1 == op_idx
+            last_op?(boot_info, op_idx)
           )
         {"jmp", "-", number} ->
-          run_instruction(
+          run_boot_instructions(
             boot_info,
             op_idx - String.to_integer(number),
             visited_idx_list ++ [op_idx],
             acc,
-            Enum.count(boot_info) - 1 == op_idx
+            last_op?(boot_info, op_idx)
           )
       end
     end
