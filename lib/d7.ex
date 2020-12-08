@@ -1,5 +1,32 @@
 defmodule D7 do
 
+  def b() do
+    bag_rules = Read_File_Utils.read_file("seven.txt")
+                |> create_bag_rule_structure()
+
+    count_enclosing_bags_options(
+      bag_rules,
+      :shiny_gold
+    )
+  end
+
+  #bag_rules_map structure: %{:shiny_gold => [{3, :shiny_black},{5, muted_red}],:shiny_black => [{3, :shiny_white},{5, muted_white}]} etc
+  def count_enclosing_bags_options(bag_rules_map, bag_name) do
+    Enum.reduce(
+      Map.get(bag_rules_map, bag_name),
+      0,
+      fn current_bag_tuple, acc ->
+        multiplier = elem(current_bag_tuple, 0)
+        next_bag_name = elem(current_bag_tuple, 1)
+        if(multiplier == 0) do
+          acc
+        else
+          acc + multiplier + (multiplier * count_enclosing_bags_options(bag_rules_map, next_bag_name))
+        end
+      end
+    )
+  end
+
   def a() do
     bag_rules = Read_File_Utils.read_file("seven.txt")
                 |> create_bag_rule_structure()
@@ -31,34 +58,6 @@ defmodule D7 do
       end
     end
     |> Enum.sum()
-  end
-
-
-  def b() do
-    bag_rules = Read_File_Utils.read_file("seven.txt")
-                |> create_bag_rule_structure()
-
-    count_enclosing_bags_options(
-      bag_rules,
-      :shiny_gold
-    )
-  end
-
-  #bag_rules_map structure: %{:shiny_gold => [{3, :shiny_black},{5, muted_red}],:shiny_black => [{3, :shiny_white},{5, muted_white}]} etc
-  def count_enclosing_bags_options(bag_rules_map, bag_name) do
-    Enum.reduce(
-      Map.get(bag_rules_map, bag_name),
-      0,
-      fn current_bag_tuple, acc ->
-        multiplier = elem(current_bag_tuple, 0)
-        next_bag_name = elem(current_bag_tuple, 1)
-        if(multiplier == 0) do
-          acc
-        else
-          acc + multiplier + (multiplier * count_enclosing_bags_options(bag_rules_map, next_bag_name))
-        end
-      end
-    )
   end
 
   def remove_current_rule(bag_rules, current), do: Map.delete(bag_rules, current)
