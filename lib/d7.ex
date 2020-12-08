@@ -6,25 +6,24 @@ defmodule D7 do
                 |> Map.delete(:shiny_gold)
     for {curr, bag_type_rules} <- bag_rules do
       if(Enum.empty?(bag_type_rules)) do
-        #IO.puts("empty")
         0
       else
-        contains = for bag_rule <- bag_type_rules do
-                     if(elem(bag_rule, 1) == :shiny_gold) do
-                       IO.puts("directly: #{Atom.to_string(curr)}")
-                       1
-                     else
-                       find_packing_options_for_bag_type(
-                         bag_rules,
-                         :shiny_gold,
-                         "#{Atom.to_string(curr)}:#{Atom.to_string(elem(bag_rule, 1))}",
-                         elem(bag_rule, 1)
-                       )
-                     end
-                   end
-                   |> List.flatten()
-                   |> Enum.any?(&(&1))
-        if(contains) do
+        if(
+          for bag_rule <- bag_type_rules do
+            if(elem(bag_rule, 1) == :shiny_gold) do
+              1
+            else
+              encloses_searched_bag_type?(
+                bag_rules,
+                :shiny_gold,
+                "#{Atom.to_string(curr)}:#{Atom.to_string(elem(bag_rule, 1))}",
+                elem(bag_rule, 1)
+              )
+            end
+          end
+          |> List.flatten()
+          |> Enum.any?(&(&1))
+        ) do
           1
         else
           0
@@ -34,33 +33,57 @@ defmodule D7 do
     |> Enum.sum()
   end
 
-  #%{
-  #  bright_white: [{1, :shiny_gold}],
-  #  dark_olive: [{3, :faded_blue}, {4, :dotted_black}],
-  #  dark_orange: [{3, :bright_white}, {4, :muted_yellow}],
-  #  dotted_black: [],
-  #  faded_blue: [],
-  #  light_red: [{1, :bright_white}, {2, :muted_yellow}],
-  #  muted_yellow: [{2, :shiny_gold}, {9, :faded_blue}],
-  #  vibrant_plum: [{5, :faded_blue}, {6, :dotted_black}]
-  #}
 
-  def find_packing_options_for_bag_type(bag_rules_map, bag_type_searched, path, current_bag_type) do
+  def b() do
+    bag_rules = Read_File_Utils.read_file("seven.txt")
+                |> create_bag_rule_structure()
+
+    count_enclosing_bags_options(
+      bag_rules,
+      :shiny_gold
+    )
+  end
+
+  #bag_rules_map structure: %{:shiny_gold => [{3, :shiny_black},{5, muted_red}],:shiny_black => [{3, :shiny_white},{5, muted_white}]} etc
+  def count_enclosing_bags_options(bag_rules_map, bag_name) do
+    Enum.reduce(
+      Map.get(bag_rules_map, bag_name),
+      0,
+      fn current_bag_tuple, acc ->
+        multiplier = elem(current_bag_tuple, 0)
+        next_bag_name = elem(current_bag_tuple, 1)
+        if(multiplier == 0) do
+          acc
+        else
+          acc + multiplier + (multiplier * count_enclosing_bags_options(bag_rules_map, next_bag_name))
+        end
+      end
+    )
+  end
+
+  def remove_current_rule(bag_rules, current), do: Map.delete(bag_rules, current)
+
+  def create_bag_rule_structure(bag_rules) do
+    for(bag_rule <- bag_rules, into: %{}) do
+      bag_atom = parse_bag_type(bag_rule)
+      bag_contains = parse_bag_contains_including_empty_bags(bag_rule)
+      {bag_atom, bag_contains}
+    end
+  end
+
+  def encloses_searched_bag_type?(bag_rules_map, bag_type_searched, path, current_bag_type) do
     bag_rules = Map.get(bag_rules_map, current_bag_type)
     if(bag_rules == nil) do
-      #IO.puts("no key found for #{Atom.to_string(current_bag_type)} returning 0")
       false
     else
       if(Enum.empty?(bag_rules)) do
-        #IO.puts("0 - #{path}")
         false
       else
         for rule <- bag_rules do
           if(bag_type_searched == elem(rule, 1)) do
-            IO.puts("1 - #{path}")
             true
           else
-            find_packing_options_for_bag_type(
+            encloses_searched_bag_type?(
               remove_current_rule(bag_rules_map, current_bag_type),
               bag_type_searched,
               "#{path}:#{Atom.to_string(elem(rule, 1))}",
@@ -69,20 +92,6 @@ defmodule D7 do
           end
         end
       end
-    end
-  end
-
-  def remove_current_rule(bag_rules, current), do: Map.delete(bag_rules, current)
-
-  def remove_searched_bag_type_from_rules(bag_rules, bag_type_searched) do
-    Map.take(bag_rules, Enum.filter(Map.keys(bag_rules), &(&1 != bag_type_searched)))
-  end
-
-  def create_bag_rule_structure(bag_rules) do
-    for(bag_rule <- bag_rules, into: %{}) do
-      bag_atom = parse_bag_type(bag_rule)
-      bag_contains = parse_bag_contains(bag_rule)
-      {bag_atom, bag_contains}
     end
   end
 
@@ -103,6 +112,25 @@ defmodule D7 do
            bag_count = String.to_integer(String.at(rule, 0))
            bag_type = parse_bag_type(String.slice(rule, 2..-1))
            {bag_count, bag_type}
+         end
+       )
+  end
+
+  def parse_bag_contains_including_empty_bags(rules) do
+    rules
+    |> String.split("contain")
+    |> Enum.at(1)
+    |> String.split(",")
+    |> Enum.map(
+         fn rule ->
+           rule = String.trim_leading(rule)
+           if(String.starts_with?(rule, "no")) do
+             {0, :no_bag}
+           else
+             bag_count = String.to_integer(String.at(rule, 0))
+             bag_type = parse_bag_type(String.slice(rule, 2..-1))
+             {bag_count, bag_type}
+           end
          end
        )
   end
