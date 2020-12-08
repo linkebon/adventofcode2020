@@ -50,4 +50,20 @@ defmodule Advent2020Test do
     assert D6.b() == 3193
   end
 
+  test "Day 7 A" do
+    assert D7.a() == 268
+  end
+
+  test "Day 7 B" do
+    assert D7.b() == 7867
+  end
+
+  test "Day 8 A" do
+    assert D8.a() == 1818
+  end
+
+  test "Day 8 B" do
+    assert D8B.b() == 631
+  end
+
 end
