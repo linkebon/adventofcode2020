@@ -70,4 +70,8 @@ defmodule Advent2020Test do
     assert D9.a() == 32321523
   end
 
+  test "Day 9B" do
+    assert D9B.b() == 4794981
+  end
+
 end

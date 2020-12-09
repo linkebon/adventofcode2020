@@ -3,23 +3,25 @@ defmodule D9B do
   def b() do
     numbers = Read_File_Utils.read_file("nine.txt")
               |> Enum.map(&(String.to_integer(&1)))
-              |> IO.inspect(label: "list")
+    # find number which has no number summing up to it in ranges of 25
     target_number = find_number_with_no_combination(numbers, 25)
+    #find any contiguous range summing up to previous number and sum smallest and largest number in that range
     find_number_combination(numbers, target_number)
   end
 
   def find_number_combination(numbers, target_number) do
     try do
-      for {_, beginning_idx} <- Enum.with_index(numbers) do
-        case sum_range(Enum.slice(numbers, beginning_idx..Enum.count(numbers) - 1) |> IO.inspect(label: "test range"), 0, target_number) do
-          {true, number} -> throw(number)
-          _ -> nil
+      Enum.each(
+        Enum.with_index(numbers),
+        fn {_, idx} ->
+          case sum_range(Enum.slice(numbers, idx..Enum.count(numbers) - 1), 0, target_number) do
+            {true, number} -> throw(number)
+            _ ->
+          end
         end
-      end
+      )
     catch
-      number ->
-        number
-        |> IO.inspect(label: "number found")
+      solution -> solution
     end
   end
 
@@ -27,13 +29,11 @@ defmodule D9B do
     case number_range do
       [] ->
         {false, 0}
-        |> IO.inspect(label: "did not match target")
       _ ->
         current = Enum.at(number_range, 0)
         if(acc + current == target_number) do
           visited = visited ++ [current]
           sorted = Enum.sort(visited)
-                   |> IO.inspect(label: "found range")
           {true, List.first(sorted) + List.last(sorted)}
         else
           [_ | tail] = number_range
