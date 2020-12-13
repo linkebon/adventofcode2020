@@ -11,6 +11,12 @@ defmodule D11 do
     |> count_occupied_seats()
   end
 
+  def b() do
+    Read_File_Utils.read_file("eleven.txt")
+    |> populate_grid()
+
+  end
+
   def traverse(grid) do
     updates = traverse_find_updates(grid)
     case updates do
@@ -51,6 +57,10 @@ defmodule D11 do
     end
   end
 
+  def find_updates_extended(grid, coordinate \\ {0, 0}, updates \\ []) do
+
+  end
+
   def next_coordinate(grid, coordinate) do
     if(elem(coordinate, 1) == Enum.count(Map.get(grid, elem(coordinate, 0))) - 1) do
       {elem(coordinate, 0) + 1, 0}
@@ -74,7 +84,6 @@ defmodule D11 do
   end
 
   def find_neighbor_occupied_coordinates(grid, coordinate, space) do
-    #grid = %{0 => ["L", ".", "L", "L", ".", "L", "L", ".", "L", "L"], 1 => ["L", "L", "L", "L", "L", "L", "L", ".", "L", "L"], 2 => ["L", ".", "L", ".", "L", ".", ".", "L", ".", "."], 3 => ["L", "L", "L", "L", "L", "L", "L", ".", "L", "L"], 4 => ["L", ".", "L", "L", ".", "L", "L", ".", "L", "L"], 5 => ["L", ".", "L", "L", "L", "L", "L", ".", "L", "L"], 6 => [".", ".", "L", ".", "L", ".", ".", ".", ".", "."], 7 => ["L", "L", "L", "L", "L", "L", "L", "L", "L", "L"], 8 => ["L", ".", "L", "L", "L", "L", "L", "L", ".", "L"], 9 => ["L", ".", "L", "L", "L", "L", "L", ".", "L", "L"]} |> IO.inspect(label: "grid")
     row_idx = elem(coordinate, 0)
     col_idx = elem(coordinate, 1)
     for x <- 1..space do
@@ -91,6 +100,60 @@ defmodule D11 do
     end
     |> List.flatten()
     |> Enum.filter(&valid_spot?(grid, &1))
+  end
+
+  def find_neighbor_coordinates_for_closest_seat_in_each_direction(grid, coordinate, space) do
+    grid = Read_File_Utils.read_file("eleven.txt")
+           |> populate_grid()
+    row_idx = elem(coordinate, 0)
+    col_idx = elem(coordinate, 1)
+    nearest_seat_map = %{
+      :left => [],
+      :up_left => [],
+      :up => [],
+      :up_right => [],
+      :right => [],
+      :down_right => [],
+      :down => [],
+      :down_left => []
+    }
+
+    nearest_seat_map = Enum.reduce(
+      1..space,
+      nearest_seat_map,
+      fn x, map ->
+        Map.put(map, :left, Map.get(map, :left) ++ [{row_idx, col_idx - x}])
+        |> Map.put(:right, Map.get(map, :right) ++ [{row_idx, col_idx + x}])
+        |> Map.put(:down, Map.get(map, :down) ++ [{row_idx + x, col_idx}])
+        |> Map.put(:up, Map.get(map, :up) ++ [{row_idx - x, col_idx}])
+        |> Map.put(:up_left, Map.get(map, :up_left) ++ [{row_idx - x, col_idx - x}])
+        |> Map.put(:up_right, Map.get(map, :up_right) ++ [{row_idx - x, col_idx + x}])
+        |> Map.put(:down_left, Map.get(map, :down_left) ++ [{row_idx + x, col_idx - x}])
+        |> Map.put(:down_right, Map.get(map, :down_right) ++ [{row_idx + x, col_idx + x}])
+      end
+    )
+
+    [find_first_seat(grid, Map.get(nearest_seat_map, :left))]
+    ++ [find_first_seat(grid, Map.get(nearest_seat_map, :right))]
+    ++ [find_first_seat(grid, Map.get(nearest_seat_map, :down))]
+       ++ [find_first_seat(grid, Map.get(nearest_seat_map, :up))]
+       ++ [find_first_seat(grid, Map.get(nearest_seat_map, :up_left))]
+          ++ [find_first_seat(grid, Map.get(nearest_seat_map, :up_right))]
+          ++ [find_first_seat(grid, Map.get(nearest_seat_map, :down_left))]
+             ++ [find_first_seat(grid, Map.get(nearest_seat_map, :down_right))]
+    |> Enum.filter(& &1 != nil)
+  end
+
+  def find_first_seat(grid, neighbor_seats) do
+    case Enum.filter(neighbor_seats, &(valid_spot?(grid, &1) and is_seat?(grid, &1))) do
+      [] -> nil
+      [h | t] -> h
+    end
+  end
+
+  def is_seat?(grid, coordinate) do
+    val = matrix_value(grid, coordinate)
+    val == @occupied or val == @empty
   end
 
   def valid_spot?(grid, coordinate) do
