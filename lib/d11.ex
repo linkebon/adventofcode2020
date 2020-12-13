@@ -7,28 +7,70 @@ defmodule D11 do
   def a() do
     Read_File_Utils.read_file("eleven.txt")
     |> populate_grid()
-    |> traverse()
+    |> traverse(&traverse_find_updates/1)
     |> count_occupied_seats()
   end
 
   def b() do
     Read_File_Utils.read_file("eleven.txt")
     |> populate_grid()
+    |> traverse(&traverse_find_updates_extended/1)
+    |> count_occupied_seats()
 
   end
 
-  def traverse(grid) do
-    updates = traverse_find_updates(grid)
+  def traverse(grid, traverse_instructions) do
+    updates = traverse_instructions.(grid)
     case updates do
-      [] -> IO.inspect(grid, label: "done")
+      [] -> grid
       _ ->
         traverse(
           Enum.reduce(
             updates,
             grid,
             fn update, acc -> update_coordinate(acc, elem(update, 0), elem(update, 1)) end
-          )
+          ),
+          traverse_instructions
         )
+    end
+  end
+
+  def traverse_find_updates_extended(grid, coordinate \\ {0, 0}, updates \\ []) do
+    case valid_spot?(grid, coordinate) do
+      false -> updates
+      _ -> case matrix_value(grid, coordinate) do
+             "L" -> cond do
+                      find_neighbor_coordinates_for_closest_seat_in_each_direction(
+                        grid,
+                        coordinate,
+                        99
+                      )
+                      |> Enum.all?(&matrix_value(grid, &1) == @empty or matrix_value(grid, &1) == @floor)
+                      ->
+                        traverse_find_updates_extended(
+                          grid,
+                          next_coordinate(grid, coordinate),
+                          updates ++ [{coordinate, "#"}]
+                        )
+                      true ->
+                        traverse_find_updates_extended(grid, next_coordinate(grid, coordinate), updates)
+                    end
+             "#" -> cond do
+                      find_neighbor_coordinates_for_closest_seat_in_each_direction(grid, coordinate, 99)
+                      |> Enum.filter(&matrix_value(grid, &1) == @occupied)
+                      |> Enum.count() >= 5
+                      ->
+                        traverse_find_updates_extended(
+                          grid,
+                          next_coordinate(grid, coordinate),
+                          updates ++ [{coordinate, "L"}]
+                        )
+                      true ->
+                        traverse_find_updates_extended(grid, next_coordinate(grid, coordinate), updates)
+                    end
+             _ -> traverse_find_updates_extended(grid, next_coordinate(grid, coordinate), updates)
+           end
+
     end
   end
 
@@ -55,10 +97,6 @@ defmodule D11 do
            end
 
     end
-  end
-
-  def find_updates_extended(grid, coordinate \\ {0, 0}, updates \\ []) do
-
   end
 
   def next_coordinate(grid, coordinate) do
@@ -103,8 +141,6 @@ defmodule D11 do
   end
 
   def find_neighbor_coordinates_for_closest_seat_in_each_direction(grid, coordinate, space) do
-    grid = Read_File_Utils.read_file("eleven.txt")
-           |> populate_grid()
     row_idx = elem(coordinate, 0)
     col_idx = elem(coordinate, 1)
     nearest_seat_map = %{
