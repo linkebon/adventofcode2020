@@ -8,41 +8,44 @@ defmodule D11 do
     Read_File_Utils.read_file("eleven.txt")
     |> populate_grid()
     |> traverse()
-
+    |> count_occupied_seats()
   end
 
-  def populate_grid(input), do:
-    for {row, idx} <- Enum.with_index(input), into: %{}, do: {idx, String.graphemes(row)}
+  def traverse(grid) do
+    updates = traverse_find_updates(grid)
+    case updates do
+      [] -> IO.inspect(grid, label: "done")
+      _ ->
+        traverse(
+          Enum.reduce(
+            updates,
+            grid,
+            fn update, acc -> update_coordinate(acc, elem(update, 0), elem(update, 1)) end
+          )
+        )
+    end
+  end
 
-  def traverse(grid, coordinate \\ {0, 0}, updates \\ 0) do
-    case valid_spot?(grid, coordinate)
-         |> IO.inspect(label: "valid spot") do
-      false -> {grid, updates}
+  def traverse_find_updates(grid, coordinate \\ {0, 0}, updates \\ []) do
+    case valid_spot?(grid, coordinate) do
+      false -> updates
       _ -> case matrix_value(grid, coordinate) do
              "L" -> cond do
                       find_neighbor_occupied_coordinates(grid, coordinate, 1)
-                      |> IO.inspect(label: "L neighbors")
-                      |> Enum.all?(&matrix_value(grid, &1) == @empty or matrix_value(grid, &1) == @floor) ->
-                        traverse(
-                          update_coordinate(grid, coordinate, "#"),
-                          next_coordinate(grid, coordinate),
-                          updates + 1
-                        )
+                      |> Enum.all?(&matrix_value(grid, &1) == @empty or matrix_value(grid, &1) == @floor)
+                      -> traverse_find_updates(grid, next_coordinate(grid, coordinate), updates ++ [{coordinate, "#"}])
                       true ->
-                        traverse(grid, next_coordinate(grid, coordinate), updates)
+                        traverse_find_updates(grid, next_coordinate(grid, coordinate), updates)
                     end
              "#" -> cond do
-                      find_neighbor_occupied_coordinates(grid, coordinate, 4)
-                      |> Enum.all?(&matrix_value(grid, &1) == @occupied or matrix_value(grid, &1) == @floor) ->
-                        traverse(
-                          update_coordinate(grid, coordinate, "L"),
-                          next_coordinate(grid, coordinate),
-                          updates + 1
-                        )
+                      find_neighbor_occupied_coordinates(grid, coordinate, 1)
+                      |> Enum.filter(&matrix_value(grid, &1) == @occupied)
+                      |> Enum.count() >= 4
+                      -> traverse_find_updates(grid, next_coordinate(grid, coordinate), updates ++ [{coordinate, "L"}])
                       true ->
-                        traverse(grid, next_coordinate(grid, coordinate), updates)
+                        traverse_find_updates(grid, next_coordinate(grid, coordinate), updates)
                     end
-             _ -> traverse(grid, next_coordinate(grid, coordinate), updates)
+             _ -> traverse_find_updates(grid, next_coordinate(grid, coordinate), updates)
            end
 
     end
@@ -56,8 +59,18 @@ defmodule D11 do
     end
   end
 
-  def count_occupied_seats(grid) do
-    #todo
+  def count_occupied_seats(grid, occupied_count \\ 0, coordinate \\ {0, 0}) do
+    case valid_spot?(grid, coordinate) do
+      false -> occupied_count
+      _ ->
+        occupied_count =
+          if(matrix_value(grid, coordinate) == @occupied) do
+            occupied_count + 1
+          else
+            occupied_count
+          end
+        count_occupied_seats(grid, occupied_count, next_coordinate(grid, coordinate))
+    end
   end
 
   def find_neighbor_occupied_coordinates(grid, coordinate, space) do
@@ -99,5 +112,8 @@ defmodule D11 do
     )
     Map.put(grid, elem(coordinate, 0), updated_seats_row)
   end
+
+  def populate_grid(input), do:
+    for {row, idx} <- Enum.with_index(input), into: %{}, do: {idx, String.graphemes(row)}
 
 end
