@@ -39,14 +39,15 @@ defmodule D12 do
 
       {dir, degrees} ->
         IO.inspect(dir, label: "dir")
-        IO.inspect(degrees, label: "degrees")
+
 
         dir = case dir do
           @forward -> direction
           d -> d
         end
 
-        IO.inspect(dir, label: "dir")
+        IO.inspect(dir, label: "dir2")
+        IO.inspect(degrees, label: "degrees")
 
         opposite_dir = cond do
           dir == @forward -> calc_opposite_direction(direction)
@@ -59,14 +60,9 @@ defmodule D12 do
         current_degrees_opposite_dir = Map.get(position, opposite_dir)
         IO.inspect(current_degrees_opposite_dir, label: "current_degrees_opposite_dir")
 
-        new_degrees_in_dir = current_degrees_in_dir + degrees - current_degrees_opposite_dir
+        {new_degrees_in_dir, new_degrees_in_opposite_dir} = calc_new_units(degrees, current_degrees_in_dir, current_degrees_opposite_dir)
+
         IO.inspect(new_degrees_in_dir, label: "new_degrees_in_dir")
-
-        new_degrees_in_opposite_dir = cond do
-          current_degrees_opposite_dir - new_degrees_in_dir < 0 -> 0
-          true -> current_degrees_opposite_dir - new_degrees_in_dir
-        end
-
         IO.inspect(new_degrees_in_opposite_dir, label: "new_degrees_in_opposite_dir")
 
         position = Map.put(position, dir, new_degrees_in_dir)
@@ -76,8 +72,16 @@ defmodule D12 do
       _ ->
         throw("error no matching")
     end
-
   end
+
+  def calc_new_units(units, current_dir_units, opposite_dir_units) do
+    cond do
+      opposite_dir_units - units <= 0 -> {current_dir_units + abs(opposite_dir_units - units), 0}
+
+      true -> {current_dir_units, opposite_dir_units - units}
+    end
+  end
+
 
   def calc_new_direction(instruction, direction) do
     case instruction do
@@ -91,7 +95,7 @@ defmodule D12 do
       {@right, degrees} when degrees == 180 and direction == @south -> @north
       {@right, degrees} when degrees == 180 and direction == @west -> @east
 
-      {@right, degrees} when degrees == 90 and direction == @north -> @west
+      {@right, degrees} when degrees == 90 and direction == @north -> @east
       {@right, degrees} when degrees == 90 and direction == @east -> @south
       {@right, degrees} when degrees == 90 and direction == @south -> @west
       {@right, degrees} when degrees == 90 and direction == @west -> @north
@@ -136,7 +140,6 @@ defmodule D12 do
   end
 
   def direction(instruction), do: elem(instruction, 0)
-
   def units(instruction), do: elem(instruction, 1)
 end
 

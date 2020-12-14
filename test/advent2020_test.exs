@@ -78,4 +78,13 @@ defmodule Advent2020Test do
     assert D11.a() == 2468
   end
 
+  #to slow test :) 5 min
+  #test "Day 11 B" do
+   # assert D12.b() == 2214
+  #end
+
+  test "Day 12 A" do
+    assert D12.a() == 1032
+  end
+
 end
