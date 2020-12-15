@@ -87,4 +87,8 @@ defmodule Advent2020Test do
     assert D12.a() == 1032
   end
 
+  test "D15 a" do
+    assert D15.a() == 959
+  end
+
 end
