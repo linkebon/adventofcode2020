@@ -87,12 +87,17 @@ defmodule Advent2020Test do
     assert D12.a() == 1032
   end
 
-  test "D15 a" do
-    assert D15.a() == 959
-  end
+  #test "D15 a" do
+  #  assert D15.a() == 959
+  #end
 
-  test "D15 b" do
-    assert D15.b() == 116590
+
+  #test "D15 b" do
+  #  assert D15.b() == 116590
+  #end
+
+  test "Day 16 A" do
+    assert D16.a() == 25895
   end
 
 end
