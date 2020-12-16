@@ -3,36 +3,42 @@ defmodule D16 do
   def a() do
     input_by_empty_line = Read_File_Utils.read_file("16.txt", ~r/\n\n/)
     rules = parse_valid_field_ranges(List.first(input_by_empty_line))
-    parse_valid_tickets(List.last(input_by_empty_line), rules)
-    |> Enum.count()
+    parse_invalid_ticket_values(List.last(input_by_empty_line), rules)
+    |> Enum.sum()
   end
 
-  def parse_valid_tickets(input, valid_ranges) do
+  def parse_invalid_ticket_values(input, valid_ranges) do
     [_ | tickets] = String.split(List.last(String.split(input, ":")), "\n")
     IO.inspect(tickets)
-    Enum.filter(
-      tickets,
-      fn ticket ->
-        numbers = String.split(ticket, ",")
-                  |> Enum.map(&String.to_integer/1)
-        !Enum.all?(
-          numbers,
-          fn number ->
-            Enum.any?(
-              valid_ranges,
-              fn range ->
-                IO.inspect(range, label: "range")
-                IO.inspect(number, label: "number")
-                (number in range)
-                |> IO.inspect(label: "in range")
-              end
-            )
-          end
-        )
-      end
-    )
-    |> IO.inspect(label: "filtered")
 
+    tickets_int = tickets
+                  |> Enum.map(
+                       fn ticket ->
+                         String.split(ticket, ",")
+                         |> Enum.map(&String.to_integer/1)
+                       end
+                     )
+    #|> IO.inspect(label: "int")
+
+    for ticket <- tickets_int do
+      Enum.filter(
+        ticket,
+        fn number ->
+          number_exists_in_range? = Enum.any?(
+            valid_ranges,
+            fn range ->
+              #IO.inspect(range, label: "range")
+              #IO.inspect(number, label: "number")
+              (number in range)
+              #|> IO.inspect(label: "in range")
+            end
+          )
+          !number_exists_in_range?
+          #|> IO.inspect(label: "filter number")
+        end
+      )
+    end
+    |> List.flatten()
   end
 
   def parse_valid_field_ranges(input) do
@@ -45,7 +51,7 @@ defmodule D16 do
       end
     )
     |> List.flatten()
-    |> IO.inspect(label: "valid ranges")
+    #|> IO.inspect(label: "valid ranges")
 
   end
 end
